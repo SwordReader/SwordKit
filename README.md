@@ -50,8 +50,9 @@ engine. Applications distributed with SwordKit ordinarily need to comply with
 the GPL for the combined work, including corresponding-source and redistribution
 requirements. Bible modules retain their own licenses and distribution terms.
 
-See [LICENSE](LICENSE) and obtain appropriate legal advice before distributing
-through a platform whose terms may add restrictions to recipients.
+See [LICENSE](LICENSE) and [NOTICE](NOTICE), and obtain appropriate legal advice
+before distributing through a platform whose terms may add restrictions to
+recipients.
 
 ## Requirements
 

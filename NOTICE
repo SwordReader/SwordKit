@@ -1,0 +1,11 @@
+SwordKit
+Copyright (C) 2026 SwordKit contributors
+SPDX-License-Identifier: GPL-2.0-only
+
+SwordKit's original Swift and bridge code is licensed under version 2 only of
+the GNU General Public License. The complete license text is in LICENSE.
+
+The CrossWire SWORD source and binary artifact included with SwordKit retain
+their upstream copyright and GPL notices under Vendor/libsword. Bible and study
+modules are separate works with independent licenses and distribution terms;
+SwordKit does not grant permission to redistribute module content.
