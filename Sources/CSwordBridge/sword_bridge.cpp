@@ -14,6 +14,7 @@
 #include <installmgr.h>
 #include <markupfiltmgr.h>
 #include <versekey.h>
+#include <versificationmgr.h>
 
 namespace {
 
@@ -114,6 +115,45 @@ struct SwordModuleHandle {
         sword::SWModule *htmlModule
     ) : module(module), htmlModule(htmlModule) {}
 };
+
+namespace {
+
+const sword::VersificationMgr::System *versificationSystem(
+    const SwordModuleHandle *module
+) {
+    if (module == nullptr || module->module == nullptr) {
+        return nullptr;
+    }
+
+    const auto *key = dynamic_cast<const sword::VerseKey *>(
+        module->module->getKey()
+    );
+
+    if (key == nullptr) {
+        return nullptr;
+    }
+
+    return sword::VersificationMgr::getSystemVersificationMgr()
+        ->getVersificationSystem(key->getVersificationSystem());
+}
+
+const sword::VersificationMgr::Book *versificationBook(
+    const SwordModuleHandle *module,
+    size_t index
+) {
+    const auto *system = versificationSystem(module);
+
+    if (
+        system == nullptr
+        || index >= static_cast<size_t>(system->getBookCount())
+    ) {
+        return nullptr;
+    }
+
+    return system->getBook(static_cast<int>(index));
+}
+
+} // namespace
 
 struct SwordModuleCatalogHandle {
     sword::SWMgr manager;
@@ -520,7 +560,7 @@ void SwordModuleTerminateSearch(
 }
 
 const char *SwordBridgeVersion(void) {
-    return "0.1.0";
+    return "0.2.0";
 }
 
 const char *SwordEngineVersion(void) {
@@ -634,6 +674,63 @@ const char *SwordModuleCopyright(const SwordModuleHandle *module) {
     return module == nullptr || module->module == nullptr
         ? ""
         : safeCString(module->module->getConfigEntry("Copyright"));
+}
+
+size_t SwordModuleBookCount(const SwordModuleHandle *module) {
+    const auto *system = versificationSystem(module);
+    return system == nullptr
+        ? 0
+        : static_cast<size_t>(system->getBookCount());
+}
+
+const char *SwordModuleBookName(
+    const SwordModuleHandle *module,
+    size_t index
+) {
+    const auto *book = versificationBook(module, index);
+    return book == nullptr ? "" : safeCString(book->getLongName());
+}
+
+const char *SwordModuleBookOSISName(
+    const SwordModuleHandle *module,
+    size_t index
+) {
+    const auto *book = versificationBook(module, index);
+    return book == nullptr ? "" : safeCString(book->getOSISName());
+}
+
+const char *SwordModuleBookPreferredAbbreviation(
+    const SwordModuleHandle *module,
+    size_t index
+) {
+    const auto *book = versificationBook(module, index);
+    return book == nullptr
+        ? ""
+        : safeCString(book->getPreferredAbbreviation());
+}
+
+int SwordModuleBookChapterCount(
+    const SwordModuleHandle *module,
+    size_t index
+) {
+    const auto *book = versificationBook(module, index);
+    return book == nullptr ? 0 : book->getChapterMax();
+}
+
+int SwordModuleBookTestament(
+    const SwordModuleHandle *module,
+    size_t index
+) {
+    const auto *system = versificationSystem(module);
+
+    if (
+        system == nullptr
+        || index >= static_cast<size_t>(system->getBookCount())
+    ) {
+        return 0;
+    }
+
+    return index < static_cast<size_t>(system->getBMAX()[0]) ? 1 : 2;
 }
 
 int SwordModuleSetKey(

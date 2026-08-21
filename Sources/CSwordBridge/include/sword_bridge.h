@@ -98,6 +98,28 @@ const char *SwordModuleType(
 const char *SwordModuleVersion(const SwordModuleHandle *module);
 const char *SwordModuleCopyright(const SwordModuleHandle *module);
 
+size_t SwordModuleBookCount(const SwordModuleHandle *module);
+const char *SwordModuleBookName(
+    const SwordModuleHandle *module,
+    size_t index
+);
+const char *SwordModuleBookOSISName(
+    const SwordModuleHandle *module,
+    size_t index
+);
+const char *SwordModuleBookPreferredAbbreviation(
+    const SwordModuleHandle *module,
+    size_t index
+);
+int SwordModuleBookChapterCount(
+    const SwordModuleHandle *module,
+    size_t index
+);
+int SwordModuleBookTestament(
+    const SwordModuleHandle *module,
+    size_t index
+);
+
 int SwordModuleSetKey(
     SwordModuleHandle *module,
     const char *reference

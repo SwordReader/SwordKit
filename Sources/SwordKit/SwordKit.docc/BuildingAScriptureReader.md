@@ -47,6 +47,17 @@ back into the main actor without exposing a native cursor to the view.
 
 ## Load a chapter
 
+Build navigation from the selected module's native versification rather than a
+fixed application list:
+
+```swift
+let books = try bible.books()
+let chaptersInGenesis = books.first { $0.osisName == "Gen" }?.chapterCount
+```
+
+This preserves the module's book order and supports alternate canons and
+versification systems.
+
 Use the textual convenience API for user-entered or navigation-generated
 references:
 

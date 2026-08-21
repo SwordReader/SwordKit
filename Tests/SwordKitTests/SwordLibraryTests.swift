@@ -4,7 +4,7 @@ import Testing
 
 @Test
 func bridgeVersionIsAvailable() {
-    #expect(SwordLibrary.bridgeVersion == "0.1.0")
+    #expect(SwordLibrary.bridgeVersion == "0.2.0")
 }
 
 @Test
@@ -85,6 +85,44 @@ func libraryFiltersModulesByCategoryAndLanguage() {
         englishBibles.map(\.name)
             == englishBibles.map(\.name).sorted()
     )
+}
+
+@Test
+func bibleModuleExposesItsVersificationBooks() throws {
+    let library = SwordLibrary()
+
+    guard let bible = library.modules.first(
+        where: { $0.category == .bible }
+    ) else {
+        return
+    }
+
+    let books = try bible.books()
+    let genesis = try #require(books.first)
+    let matthew = try #require(books.first { $0.osisName == "Matt" })
+
+    #expect(genesis.name == "Genesis")
+    #expect(genesis.osisName == "Gen")
+    #expect(genesis.preferredAbbreviation == "Gen")
+    #expect(genesis.chapterCount == 50)
+    #expect(genesis.testament == .old)
+    #expect(matthew.chapterCount == 28)
+    #expect(matthew.testament == .new)
+}
+
+@Test
+func nonBibleModuleRejectsVersificationBooks() throws {
+    let library = SwordLibrary()
+
+    guard let dictionary = library.modules.first(
+        where: { $0.category != .bible }
+    ) else {
+        return
+    }
+
+    #expect(throws: SwordError.unsupportedModuleType) {
+        try dictionary.books()
+    }
 }
 
 @Test
@@ -1816,6 +1854,7 @@ func sharedLibrarySerializesRefreshAndModuleSnapshots() async {
 
 @Test
 func portablePublicValuesAreSendable() {
+    requireSendable(SwordBook.self)
     requireSendable(SwordReference.self)
     requireSendable(SwordReferenceList.self)
     requireSendable(SwordPassageRange.self)

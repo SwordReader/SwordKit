@@ -53,6 +53,7 @@ immutable `Sendable` snapshots.
 ### Scripture references and content
 
 - ``SwordReference``
+- ``SwordBook``
 - ``SwordReferenceList``
 - ``SwordPassageRange``
 - ``SwordChapterReference``

@@ -7,6 +7,15 @@ Versioning and is currently preparing its first pre-1.0 release.
 
 No changes yet.
 
+## 0.2.0 - 2026-08-21
+
+### Added
+
+- Versification-aware `SwordModule.books()` metadata for canonical book and
+  chapter navigation without hard-coding a single Bible canon in applications.
+- `SwordBook` values with stable OSIS identity, display metadata, testament,
+  and chapter count.
+
 ## 0.1.0 - 2026-08-03
 
 ### Added

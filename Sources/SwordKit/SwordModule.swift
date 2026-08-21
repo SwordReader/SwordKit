@@ -67,6 +67,49 @@ public final class SwordModule: Hashable, @unchecked Sendable {
         
         self.category = Category(swordType: type)
     }
+
+    /// Returns the ordered books in this Bible module's native versification.
+    ///
+    /// Book identifiers and chapter counts come from the module's configured
+    /// SWORD versification rather than from a fixed application canon.
+    public func books() throws -> [SwordBook] {
+        try accessLock.withLock {
+            guard category == .bible else {
+                throw SwordError.unsupportedModuleType
+            }
+
+            return (0..<SwordModuleBookCount(handle)).compactMap {
+                index -> SwordBook? in
+                let osisName = SwordLibrary.string(
+                    from: SwordModuleBookOSISName(handle, index)
+                )
+                let name = SwordLibrary.string(
+                    from: SwordModuleBookName(handle, index)
+                )
+                let chapterCount = SwordModuleBookChapterCount(handle, index)
+                let testament = SwordModuleBookTestament(handle, index)
+
+                guard
+                    !osisName.isEmpty,
+                    !name.isEmpty,
+                    chapterCount > 0,
+                    testament == 1 || testament == 2
+                else {
+                    return nil
+                }
+
+                return SwordBook(
+                    osisName: osisName,
+                    name: name,
+                    preferredAbbreviation: SwordLibrary.string(
+                        from: SwordModuleBookPreferredAbbreviation(handle, index)
+                    ),
+                    chapterCount: Int(chapterCount),
+                    testament: testament == 1 ? .old : .new
+                )
+            }
+        }
+    }
     
     /// Parses a Scripture reference expression using the module's
     /// native SWORD versification.
