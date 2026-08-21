@@ -4,7 +4,7 @@ import Testing
 
 @Test
 func bridgeVersionIsAvailable() {
-    #expect(SwordLibrary.bridgeVersion == "0.2.0")
+    #expect(SwordLibrary.bridgeVersion == "0.3.0")
 }
 
 @Test
@@ -143,6 +143,102 @@ func installerConfigurationStoresExplicitDirectoriesAndRepositories() throws {
     #expect(configuration.repositories == [repository])
     #expect(configuration.destinationDirectory.isFileURL)
     #expect(configuration.privateDirectory.isFileURL)
+}
+
+@Test
+func moduleRepositoryRejectsPathLikeIdentifier() {
+    #expect(throws: SwordError.invalidModuleRepository("../crosswire")) {
+        try SwordModuleRepository(
+            identifier: "../crosswire",
+            name: "CrossWire",
+            transport: .ftp,
+            host: "ftp.crosswire.org",
+            directory: "/pub/sword/raw"
+        )
+    }
+}
+
+@Test
+func cachedRemoteCatalogReadsRepositoryShadow() throws {
+    let workspace = FileManager.default.temporaryDirectory.appending(
+        path: "SwordKitRemoteCatalog-\(UUID().uuidString)",
+        directoryHint: .isDirectory
+    )
+    let shadow = workspace.appending(
+        path: "installer/crosswire/mods.d",
+        directoryHint: .isDirectory
+    )
+    try FileManager.default.createDirectory(
+        at: shadow,
+        withIntermediateDirectories: true
+    )
+    defer { try? FileManager.default.removeItem(at: workspace) }
+
+    try """
+    [ASV]
+    DataPath=./modules/texts/ztext/asv/
+    ModDrv=zText
+    Description=American Standard Version (1901)
+    Lang=en
+    Version=2.0
+    Copyright=Public Domain
+    """.write(
+        to: shadow.appending(path: "asv.conf"),
+        atomically: true,
+        encoding: .utf8
+    )
+
+    let repository = try SwordModuleRepository(
+        identifier: "crosswire",
+        name: "CrossWire",
+        transport: .ftp,
+        host: "ftp.crosswire.org",
+        directory: "/pub/sword/raw"
+    )
+    let configuration = try SwordInstallerConfiguration(
+        destinationDirectory: workspace.appending(path: "modules"),
+        privateDirectory: workspace.appending(path: "installer"),
+        repositories: [repository]
+    )
+    let installer = SwordModuleInstaller(configuration: configuration)
+
+    let catalog = try installer.cachedCatalog(for: repository)
+    let module = try #require(catalog.modules.first)
+
+    #expect(catalog.repository == repository)
+    #expect(module.name == "ASV")
+    #expect(module.title == "American Standard Version (1901)")
+    #expect(module.version == "2.0")
+    #expect(module.copyright == "Public Domain")
+}
+
+@Test
+func remoteCatalogRefreshRequiresExplicitRiskAcknowledgement() async throws {
+    let workspace = FileManager.default.temporaryDirectory.appending(
+        path: "SwordKitRemoteAuthorization-\(UUID().uuidString)",
+        directoryHint: .isDirectory
+    )
+    defer { try? FileManager.default.removeItem(at: workspace) }
+    let repository = try SwordModuleRepository(
+        identifier: "crosswire",
+        name: "CrossWire",
+        transport: .ftp,
+        host: "ftp.crosswire.org",
+        directory: "/pub/sword/raw"
+    )
+    let configuration = try SwordInstallerConfiguration(
+        destinationDirectory: workspace.appending(path: "modules"),
+        privateDirectory: workspace.appending(path: "installer"),
+        repositories: [repository]
+    )
+    let installer = SwordModuleInstaller(configuration: configuration)
+
+    await #expect(throws: SwordError.remoteAccessNotAuthorized) {
+        try await installer.refreshCatalog(
+            for: repository,
+            acknowledgingRemoteAccessRisks: false
+        )
+    }
 }
 
 @Test

@@ -190,6 +190,8 @@ Long-term direction:
 - [x] Refresh library
 - [x] Inspect module metadata
 - [x] Version information
+- [x] Remote catalog refresh and cached browsing
+- [x] Remote installation progress and cancellation
 
 ---
 

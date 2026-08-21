@@ -13,6 +13,12 @@ const char *SwordEngineVersion(void);
 typedef struct SwordManager SwordManager;
 typedef struct SwordModuleHandle SwordModuleHandle;
 typedef struct SwordModuleCatalogHandle SwordModuleCatalogHandle;
+typedef int (*SwordTransferProgressCallback)(
+    const char *message,
+    unsigned long totalBytes,
+    unsigned long completedBytes,
+    void *userData
+);
 typedef void (*SwordSearchProgressCallback)(
     int percentage,
     void *userData
@@ -61,6 +67,30 @@ int SwordRemoveModule(
     const char *privatePath,
     const char *destinationPath,
     const char *moduleName
+);
+
+int SwordRefreshRemoteCatalog(
+    const char *privatePath,
+    const char *transport,
+    const char *host,
+    const char *directory,
+    const char *identifier,
+    const char *name,
+    SwordTransferProgressCallback progress,
+    void *progressUserData
+);
+
+int SwordInstallRemoteModule(
+    const char *privatePath,
+    const char *destinationPath,
+    const char *transport,
+    const char *host,
+    const char *directory,
+    const char *identifier,
+    const char *name,
+    const char *moduleName,
+    SwordTransferProgressCallback progress,
+    void *progressUserData
 );
 
 size_t SwordManagerModuleCount(const SwordManager *manager);

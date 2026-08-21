@@ -7,6 +7,16 @@ Versioning and is currently preparing its first pre-1.0 release.
 
 No changes yet.
 
+## 0.3.0 - 2026-08-21
+
+### Added
+
+- Remote SWORD repository catalog refresh and cached browsing.
+- Remote module installation with Swift concurrency, byte progress, and task
+  cancellation.
+- Explicit acknowledgement of SWORD's remote-access warning before network
+  operations.
+
 ## 0.2.0 - 2026-08-21
 
 ### Added

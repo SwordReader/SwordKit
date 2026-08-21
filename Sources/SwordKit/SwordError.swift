@@ -57,6 +57,19 @@ public enum SwordError: Error, Equatable, Sendable {
     /// No local SWORD repository existed at the supplied directory.
     case moduleCatalogNotFound(String)
 
+    /// Remote access was attempted before the app confirmed the SWORD warning.
+    case remoteAccessNotAuthorized
+
+    /// SWORD could not refresh a remote repository catalog.
+    case remoteCatalogRefreshFailed(repository: String, status: Int32)
+
+    /// SWORD could not install a module from a remote repository.
+    case remoteModuleInstallationFailed(
+        module: String,
+        repository: String,
+        status: Int32
+    )
+
     /// SWORD could not install a selected module.
     case moduleInstallationFailed(module: String, status: Int32)
 

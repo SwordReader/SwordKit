@@ -17,7 +17,7 @@ It provides an idiomatic Swift API while hiding the underlying SWORD C++ impleme
 - Verse, passage, chapter, and reference-list retrieval
 - Phrase, regular-expression, Strong's-number, and morphology search
 - Translation and word-level language comparison values
-- Module installation and study-feature values
+- Local and remote module installation with transfer progress
 - macOS, iOS, iPadOS, tvOS, visionOS, and watchOS package support
 
 See [Docs/ROADMAP.md](Docs/ROADMAP.md) for planned milestones.

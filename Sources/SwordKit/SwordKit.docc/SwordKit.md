@@ -83,6 +83,8 @@ immutable `Sendable` snapshots.
 - <doc:ManagingModuleLifecycle>
 - ``SwordModuleCatalog``
 - ``SwordModuleCatalogEntry``
+- ``SwordRemoteModuleCatalog``
+- ``SwordTransferProgress``
 - ``SwordInstallerConfiguration``
 - ``SwordModuleInstaller``
 - ``SwordModuleRepository``

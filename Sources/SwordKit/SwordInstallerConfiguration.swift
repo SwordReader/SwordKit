@@ -85,7 +85,15 @@ public struct SwordModuleRepository: Hashable, Sendable {
             in: .whitespacesAndNewlines
         )
 
-        guard !identifier.isEmpty, !name.isEmpty, !host.isEmpty else {
+        guard
+            !identifier.isEmpty,
+            identifier != ".",
+            identifier != "..",
+            !identifier.contains("/"),
+            !identifier.contains("\\"),
+            !name.isEmpty,
+            !host.isEmpty
+        else {
             throw SwordError.invalidModuleRepository(identifier)
         }
 

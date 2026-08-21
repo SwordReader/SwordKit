@@ -33,6 +33,62 @@ Repository descriptions are values stored in
 ``SwordInstallerConfiguration/repositories``. SwordKit never contacts a remote
 repository merely because it appears in configuration.
 
+## Refresh and browse a remote repository
+
+Remote access can make Bible-reader traffic identifiable and third-party
+repositories may contain unreviewed or improperly distributed content. Present
+SWORD's warning in your interface and require an affirmative choice before
+passing `true` for `acknowledgingRemoteAccessRisks`.
+
+```swift
+let crossWire = try SwordModuleRepository(
+    identifier: "crosswire",
+    name: "CrossWire Bible Society",
+    transport: .https,
+    host: "www.crosswire.org",
+    directory: "/ftpmirror/pub/sword/raw"
+)
+let configuration = SwordInstallerConfiguration(
+    location: location,
+    repositories: [crossWire]
+)
+let installer = SwordModuleInstaller(configuration: configuration)
+
+let catalog = try await installer.refreshCatalog(
+    for: crossWire,
+    acknowledgingRemoteAccessRisks: true
+) { progress in
+    print(progress.fractionCompleted as Any)
+}
+```
+
+Refreshing stores the repository's SWORD configuration under the configured
+installer-private directory. Use ``SwordModuleInstaller/cachedCatalog(for:)``
+to reopen that snapshot without contacting the network. HTTP and HTTPS use the
+SWORD build's cURL transport, currently available in SwordKit's macOS artifact;
+FTP uses SWORD's built-in transport on every packaged platform. Prefer a
+TLS-protected repository whenever the target artifact supports it.
+
+## Install from a remote repository
+
+Install an advertised module from a refreshed catalog:
+
+```swift
+try await installer.install(
+    moduleNamed: "ASV",
+    from: crossWire,
+    acknowledgingRemoteAccessRisks: true
+) { progress in
+    print(progress.completedBytes)
+}
+library.refresh()
+```
+
+Both remote operations run away from the calling executor, report byte
+progress, and honor task cancellation. A catalog refresh is required before
+remote installation so applications can present current metadata and licensing
+terms before downloading content.
+
 ## Install from a local catalog
 
 The current installer API copies a selected module from a local repository:

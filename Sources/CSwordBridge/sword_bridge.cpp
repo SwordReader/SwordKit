@@ -13,6 +13,7 @@
 #include <listkey.h>
 #include <installmgr.h>
 #include <markupfiltmgr.h>
+#include <remotetrans.h>
 #include <versekey.h>
 #include <versificationmgr.h>
 
@@ -30,6 +31,85 @@ struct SearchProgressContext {
     SwordSearchProgressCallback callback;
     void *userData;
 };
+
+class BridgeTransferReporter final : public sword::StatusReporter {
+public:
+    BridgeTransferReporter(
+        SwordTransferProgressCallback callback,
+        void *userData
+    ) : callback(callback), userData(userData) {}
+
+    void setInstaller(sword::InstallMgr *installer) {
+        this->installer = installer;
+    }
+
+    void update(
+        unsigned long totalBytes,
+        unsigned long completedBytes
+    ) override {
+        report("", totalBytes, completedBytes);
+    }
+
+    void preStatus(
+        long totalBytes,
+        long completedBytes,
+        const char *message
+    ) override {
+        report(
+            safeCString(message),
+            totalBytes < 0 ? 0 : static_cast<unsigned long>(totalBytes),
+            completedBytes < 0
+                ? 0
+                : static_cast<unsigned long>(completedBytes)
+        );
+    }
+
+private:
+    SwordTransferProgressCallback callback;
+    void *userData;
+    sword::InstallMgr *installer = nullptr;
+
+    void report(
+        const char *message,
+        unsigned long totalBytes,
+        unsigned long completedBytes
+    ) {
+        if (callback != nullptr) {
+            const int shouldCancel = callback(
+                message,
+                totalBytes,
+                completedBytes,
+                userData
+            );
+            if (shouldCancel != 0 && installer != nullptr) {
+                installer->terminate();
+            }
+        }
+    }
+};
+
+sword::InstallSource makeInstallSource(
+    const char *transport,
+    const char *host,
+    const char *directory,
+    const char *identifier,
+    const char *name,
+    const char *privatePath
+) {
+    std::string configuration = safeCString(name);
+    configuration += "|";
+    configuration += safeCString(host);
+    configuration += "|";
+    configuration += safeCString(directory);
+    configuration += "|||";
+    configuration += safeCString(identifier);
+
+    sword::InstallSource source(transport, configuration.c_str());
+    const std::string localShadow = std::string(privatePath)
+        + "/" + safeCString(identifier);
+    source.localShadow = localShadow.c_str();
+    return source;
+}
 
 void reportSearchProgress(char percentage, void *userData) {
     auto *context = static_cast<SearchProgressContext *>(userData);
@@ -273,6 +353,95 @@ int SwordRemoveModule(
         sword::InstallMgr installer(privatePath);
         sword::SWMgr destination(destinationPath);
         return installer.removeModule(&destination, moduleName);
+    } catch (...) {
+        return -1;
+    }
+}
+
+int SwordRefreshRemoteCatalog(
+    const char *privatePath,
+    const char *transport,
+    const char *host,
+    const char *directory,
+    const char *identifier,
+    const char *name,
+    SwordTransferProgressCallback progress,
+    void *progressUserData
+) {
+    if (
+        privatePath == nullptr
+        || transport == nullptr
+        || host == nullptr
+        || identifier == nullptr
+        || identifier[0] == '\0'
+    ) {
+        return -1;
+    }
+
+    try {
+        BridgeTransferReporter reporter(progress, progressUserData);
+        sword::InstallMgr installer(privatePath, &reporter);
+        reporter.setInstaller(&installer);
+        installer.setUserDisclaimerConfirmed(true);
+        auto source = makeInstallSource(
+            transport,
+            host,
+            directory,
+            identifier,
+            name,
+            privatePath
+        );
+        return installer.refreshRemoteSource(&source);
+    } catch (...) {
+        return -1;
+    }
+}
+
+int SwordInstallRemoteModule(
+    const char *privatePath,
+    const char *destinationPath,
+    const char *transport,
+    const char *host,
+    const char *directory,
+    const char *identifier,
+    const char *name,
+    const char *moduleName,
+    SwordTransferProgressCallback progress,
+    void *progressUserData
+) {
+    if (
+        privatePath == nullptr
+        || destinationPath == nullptr
+        || transport == nullptr
+        || host == nullptr
+        || identifier == nullptr
+        || identifier[0] == '\0'
+        || moduleName == nullptr
+        || moduleName[0] == '\0'
+    ) {
+        return -1;
+    }
+
+    try {
+        BridgeTransferReporter reporter(progress, progressUserData);
+        sword::InstallMgr installer(privatePath, &reporter);
+        reporter.setInstaller(&installer);
+        installer.setUserDisclaimerConfirmed(true);
+        sword::SWMgr destination(destinationPath);
+        auto source = makeInstallSource(
+            transport,
+            host,
+            directory,
+            identifier,
+            name,
+            privatePath
+        );
+        return installer.installModule(
+            &destination,
+            nullptr,
+            moduleName,
+            &source
+        );
     } catch (...) {
         return -1;
     }
@@ -560,7 +729,7 @@ void SwordModuleTerminateSearch(
 }
 
 const char *SwordBridgeVersion(void) {
-    return "0.2.0";
+    return "0.3.0";
 }
 
 const char *SwordEngineVersion(void) {
