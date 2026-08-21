@@ -11,11 +11,18 @@
 #include <swversion.h>
 
 #include <listkey.h>
+#include <filemgr.h>
 #include <installmgr.h>
 #include <markupfiltmgr.h>
 #include <remotetrans.h>
 #include <versekey.h>
 #include <versificationmgr.h>
+#include <zipcomprs.h>
+
+extern "C" {
+#include <internal/unzip/unzip.h>
+#include <zlib.h>
+}
 
 namespace {
 
@@ -26,6 +33,116 @@ const char *safeCString(const char *value) {
 constexpr int searchAttributeNone = 0;
 constexpr int searchAttributeStrongs = 1;
 constexpr int searchAttributeMorphology = 2;
+
+bool isSafeArchivePath(const std::string &path) {
+    if (
+        path.empty()
+        || path.front() == '/'
+        || path.front() == '\\'
+        || path.find(':') != std::string::npos
+    ) {
+        return false;
+    }
+
+    std::string component;
+    for (const char character : path) {
+        if (character == '/' || character == '\\') {
+            if (component == "..") {
+                return false;
+            }
+            component.clear();
+        } else {
+            component += character;
+        }
+    }
+    return component != "..";
+}
+
+unsigned long tarOctal(const char *value, size_t length) {
+    unsigned long result = 0;
+    for (size_t index = 0; index < length; ++index) {
+        const char character = value[index];
+        if (character == '\0') break;
+        if (character == ' ') continue;
+        if (character < '0' || character > '7') return 0;
+        result = result * 8 + static_cast<unsigned long>(character - '0');
+    }
+    return result;
+}
+
+bool isSafeTarGZ(const char *archivePath) {
+    gzFile archive = gzopen(archivePath, "rb");
+    if (archive == nullptr) return false;
+
+    char block[512];
+    bool safe = true;
+    while (true) {
+        const int count = gzread(archive, block, sizeof(block));
+        if (count == 0) break;
+        if (count != sizeof(block)) {
+            safe = false;
+            break;
+        }
+        if (block[0] == '\0') break;
+
+        const std::string name(block, strnlen(block, 100));
+        const std::string prefix(block + 345, strnlen(block + 345, 155));
+        const std::string path = prefix.empty() ? name : prefix + "/" + name;
+        if (!isSafeArchivePath(path)) {
+            safe = false;
+            break;
+        }
+
+        const unsigned long size = tarOctal(block + 124, 12);
+        const unsigned long dataBlocks = (size + 511) / 512;
+        for (unsigned long index = 0; index < dataBlocks; ++index) {
+            if (gzread(archive, block, sizeof(block)) != sizeof(block)) {
+                safe = false;
+                break;
+            }
+        }
+        if (!safe) break;
+    }
+
+    gzclose(archive);
+    return safe;
+}
+
+bool isSafeZip(const char *archivePath) {
+    unzFile archive = unzOpen(archivePath);
+    if (archive == nullptr) return false;
+
+    unz_global_info globalInfo;
+    bool safe = unzGetGlobalInfo(archive, &globalInfo) == UNZ_OK;
+    for (uLong index = 0; safe && index < globalInfo.number_entry; ++index) {
+        if (index > 0 && unzGoToNextFile(archive) != UNZ_OK) {
+            safe = false;
+            break;
+        }
+        unz_file_info fileInfo;
+        char name[4096];
+        if (
+            unzGetCurrentFileInfo(
+                archive,
+                &fileInfo,
+                name,
+                sizeof(name),
+                nullptr,
+                0,
+                nullptr,
+                0
+            ) != UNZ_OK
+        ) {
+            safe = false;
+            break;
+        }
+        name[sizeof(name) - 1] = '\0';
+        safe = isSafeArchivePath(name);
+    }
+
+    unzClose(archive);
+    return safe;
+}
 
 struct SearchProgressContext {
     SwordSearchProgressCallback callback;
@@ -447,6 +564,42 @@ int SwordInstallRemoteModule(
     }
 }
 
+int SwordExtractRemoteCatalogArchive(
+    const char *archivePath,
+    const char *destinationPath
+) {
+    if (
+        archivePath == nullptr
+        || destinationPath == nullptr
+        || !isSafeTarGZ(archivePath)
+    ) {
+        return -1;
+    }
+
+    const int descriptor = sword::FileMgr::openFileReadOnly(archivePath);
+    if (descriptor < 0) return -1;
+    const int status = sword::ZipCompress::unTarGZ(
+        descriptor,
+        destinationPath
+    );
+    sword::FileMgr::closeFile(descriptor);
+    return status;
+}
+
+int SwordExtractRemoteModuleArchive(
+    const char *archivePath,
+    const char *destinationPath
+) {
+    if (
+        archivePath == nullptr
+        || destinationPath == nullptr
+        || !isSafeZip(archivePath)
+    ) {
+        return -1;
+    }
+    return sword::ZipCompress::unZip(archivePath, destinationPath);
+}
+
 size_t SwordModuleParseReferenceCount(
     SwordModuleHandle *module,
     const char *reference
@@ -729,7 +882,7 @@ void SwordModuleTerminateSearch(
 }
 
 const char *SwordBridgeVersion(void) {
-    return "0.3.0";
+    return "0.4.0";
 }
 
 const char *SwordEngineVersion(void) {

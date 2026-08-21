@@ -63,6 +63,18 @@ public enum SwordError: Error, Equatable, Sendable {
     /// SWORD could not refresh a remote repository catalog.
     case remoteCatalogRefreshFailed(repository: String, status: Int32)
 
+    /// A repository could not produce a valid remote resource URL.
+    case invalidRemoteRepositoryURL(String)
+
+    /// A repository does not advertise downloadable module packages.
+    case remoteModulePackagesUnavailable(String)
+
+    /// A remote module name was unsafe for use as an archive path.
+    case invalidRemoteModuleName(String)
+
+    /// A downloaded repository archive was invalid or unsafe to extract.
+    case invalidRemoteArchive(String)
+
     /// SWORD could not install a module from a remote repository.
     case remoteModuleInstallationFailed(
         module: String,

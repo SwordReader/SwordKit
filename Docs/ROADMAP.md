@@ -192,6 +192,8 @@ Long-term direction:
 - [x] Version information
 - [x] Remote catalog refresh and cached browsing
 - [x] Remote installation progress and cancellation
+- [x] Apple-native HTTPS transport across supported platforms
+- [x] Safe catalog and module archive extraction
 
 ---
 

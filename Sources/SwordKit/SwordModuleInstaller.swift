@@ -39,6 +39,14 @@ public struct SwordModuleInstaller: Sendable {
             throw SwordError.remoteAccessNotAuthorized
         }
 
+        if repository.transport == .https {
+            return try await SwordHTTPSRepositoryTransport.refreshCatalog(
+                repository: repository,
+                configuration: configuration,
+                progress: progress
+            )
+        }
+
         let transfer = Task.detached {
             try Task.checkCancellation()
             try configuration.createInstallerDirectories()
@@ -91,6 +99,15 @@ public struct SwordModuleInstaller: Sendable {
             where: { $0.name == moduleName }
         ) else {
             throw SwordError.moduleNotFound(moduleName)
+        }
+
+        if repository.transport == .https {
+            return try await SwordHTTPSRepositoryTransport.install(
+                moduleName: moduleName,
+                repository: repository,
+                installer: self,
+                progress: progress
+            )
         }
 
         let transfer = Task.detached {
@@ -247,7 +264,7 @@ private func withTransferProgress<Result>(
     )
 }
 
-private extension SwordInstallerConfiguration {
+extension SwordInstallerConfiguration {
     func createInstallerDirectories() throws {
         try FileManager.default.createDirectory(
             at: destinationDirectory,

@@ -4,7 +4,7 @@ import Testing
 
 @Test
 func bridgeVersionIsAvailable() {
-    #expect(SwordLibrary.bridgeVersion == "0.3.0")
+    #expect(SwordLibrary.bridgeVersion == "0.4.0")
 }
 
 @Test
@@ -156,6 +156,96 @@ func moduleRepositoryRejectsPathLikeIdentifier() {
             directory: "/pub/sword/raw"
         )
     }
+}
+
+@Test
+func httpsRepositoryBuildsCatalogAndPackageURLs() throws {
+    let repository = try SwordModuleRepository(
+        identifier: "crosswire",
+        name: "CrossWire",
+        transport: .https,
+        host: "www.crosswire.org",
+        directory: "/ftpmirror/pub/sword/raw/",
+        packageDirectory: "/ftpmirror/pub/sword/packages/rawzip/"
+    )
+
+    #expect(
+        try repository.catalogURL().absoluteString
+            == "https://www.crosswire.org/ftpmirror/pub/sword/raw/mods.d.tar.gz"
+    )
+    #expect(
+        try repository.moduleArchiveURL(named: "ASV").absoluteString
+            == "https://www.crosswire.org/ftpmirror/pub/sword/packages/rawzip/ASV.zip"
+    )
+}
+
+@Test
+func repositoryWithoutPackageDirectoryRejectsArchiveURL() throws {
+    let repository = try SwordModuleRepository(
+        identifier: "crosswire",
+        name: "CrossWire",
+        transport: .https,
+        host: "www.crosswire.org",
+        directory: "/ftpmirror/pub/sword/raw"
+    )
+
+    #expect(
+        throws: SwordError.remoteModulePackagesUnavailable("crosswire")
+    ) {
+        try repository.moduleArchiveURL(named: "ASV")
+    }
+}
+
+@Test
+func repositoryRejectsPathLikeModuleArchiveName() throws {
+    let repository = try SwordModuleRepository(
+        identifier: "crosswire",
+        name: "CrossWire",
+        transport: .https,
+        host: "www.crosswire.org",
+        directory: "/ftpmirror/pub/sword/raw",
+        packageDirectory: "/ftpmirror/pub/sword/packages/rawzip"
+    )
+
+    #expect(throws: SwordError.invalidRemoteModuleName("../ASV")) {
+        try repository.moduleArchiveURL(named: "../ASV")
+    }
+}
+
+@Test
+func remoteModuleArchiveRejectsParentDirectoryEntry() throws {
+    let workspace = FileManager.default.temporaryDirectory.appending(
+        path: "SwordKitUnsafeArchive-\(UUID().uuidString)",
+        directoryHint: .isDirectory
+    )
+    let archive = workspace.appending(path: "unsafe.zip")
+    let destination = workspace.appending(
+        path: "destination",
+        directoryHint: .isDirectory
+    )
+    try FileManager.default.createDirectory(
+        at: destination,
+        withIntermediateDirectories: true
+    )
+    defer { try? FileManager.default.removeItem(at: workspace) }
+
+    let encoded =
+        "UEsDBBQAAAAIAMaRFV37OSuCBQAAAAMAAAANAAAALi4vZXNjYXBlLnR4dEtKTAEA"
+        + "UEsBAhQDFAAAAAgAxpEVXfs5K4IFAAAAAwAAAA0AAAAAAAAAAAAAAIABAAAAAC4u"
+        + "L2VzY2FwZS50eHRQSwUGAAAAAAEAAQA7AAAAMAAAAAAA"
+    try #require(Data(base64Encoded: encoded)).write(to: archive)
+
+    #expect(throws: SwordError.invalidRemoteArchive("unsafe.zip")) {
+        try SwordHTTPSRepositoryTransport.extractModuleArchive(
+            archive,
+            to: destination
+        )
+    }
+    #expect(
+        !FileManager.default.fileExists(
+            atPath: workspace.appending(path: "escape.txt").path
+        )
+    )
 }
 
 @Test

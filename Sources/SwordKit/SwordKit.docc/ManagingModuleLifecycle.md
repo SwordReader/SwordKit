@@ -46,7 +46,8 @@ let crossWire = try SwordModuleRepository(
     name: "CrossWire Bible Society",
     transport: .https,
     host: "www.crosswire.org",
-    directory: "/ftpmirror/pub/sword/raw"
+    directory: "/ftpmirror/pub/sword/raw",
+    packageDirectory: "/ftpmirror/pub/sword/packages/rawzip"
 )
 let configuration = SwordInstallerConfiguration(
     location: location,
@@ -64,10 +65,10 @@ let catalog = try await installer.refreshCatalog(
 
 Refreshing stores the repository's SWORD configuration under the configured
 installer-private directory. Use ``SwordModuleInstaller/cachedCatalog(for:)``
-to reopen that snapshot without contacting the network. HTTP and HTTPS use the
-SWORD build's cURL transport, currently available in SwordKit's macOS artifact;
-FTP uses SWORD's built-in transport on every packaged platform. Prefer a
-TLS-protected repository whenever the target artifact supports it.
+to reopen that snapshot without contacting the network. HTTPS uses Apple's
+`URLSession` on macOS, iOS, iPadOS, watchOS, tvOS, and visionOS. The optional
+`packageDirectory` identifies the repository path containing raw ZIP packages
+named `{moduleName}.zip`.
 
 ## Install from a remote repository
 
@@ -88,6 +89,11 @@ Both remote operations run away from the calling executor, report byte
 progress, and honor task cancellation. A catalog refresh is required before
 remote installation so applications can present current metadata and licensing
 terms before downloading content.
+
+SwordKit validates archive entry paths before extraction and stages catalog
+refreshes before replacing the previous cache. Applications should still use
+trusted repositories and present each module's publisher-supplied licensing
+metadata before installation.
 
 ## Install from a local catalog
 

@@ -93,6 +93,16 @@ int SwordInstallRemoteModule(
     void *progressUserData
 );
 
+int SwordExtractRemoteCatalogArchive(
+    const char *archivePath,
+    const char *destinationPath
+);
+
+int SwordExtractRemoteModuleArchive(
+    const char *archivePath,
+    const char *destinationPath
+);
+
 size_t SwordManagerModuleCount(const SwordManager *manager);
 
 SwordModuleHandle *SwordManagerOpenModule(

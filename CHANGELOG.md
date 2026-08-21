@@ -7,6 +7,21 @@ Versioning and is currently preparing its first pre-1.0 release.
 
 No changes yet.
 
+## 0.4.0 - 2026-08-21
+
+### Added
+
+- Apple-native HTTPS catalog and raw-package downloads across every supported
+  Apple platform.
+- Explicit repository package endpoints and safe remote resource URL creation.
+- Path validation before extracting downloaded SWORD catalog and module
+  archives.
+
+### Changed
+
+- HTTPS repository operations now use `URLSession` instead of depending on the
+  native SWORD artifact's platform-specific cURL availability.
+
 ## 0.3.0 - 2026-08-21
 
 ### Added

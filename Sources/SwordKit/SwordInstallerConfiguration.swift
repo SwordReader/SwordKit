@@ -67,6 +67,8 @@ public struct SwordModuleRepository: Hashable, Sendable {
     public let host: String
     /// The catalog path on the server.
     public let directory: String
+    /// The path containing `{moduleName}.zip` packages, when available.
+    public let packageDirectory: String?
 
     /// Creates a validated remote repository description.
     public init(
@@ -74,7 +76,8 @@ public struct SwordModuleRepository: Hashable, Sendable {
         name: String,
         transport: Transport,
         host: String,
-        directory: String
+        directory: String,
+        packageDirectory: String? = nil
     ) throws {
         let identifier = identifier.trimmingCharacters(
             in: .whitespacesAndNewlines
@@ -82,6 +85,9 @@ public struct SwordModuleRepository: Hashable, Sendable {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let host = host.trimmingCharacters(in: .whitespacesAndNewlines)
         let directory = directory.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        let packageDirectory = packageDirectory?.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
 
@@ -102,5 +108,51 @@ public struct SwordModuleRepository: Hashable, Sendable {
         self.transport = transport
         self.host = host
         self.directory = directory
+        self.packageDirectory = packageDirectory?.isEmpty == true
+            ? nil
+            : packageDirectory
+    }
+
+    /// The repository endpoint containing its compressed SWORD catalog.
+    public func catalogURL() throws -> URL {
+        try resourceURL(directory: directory, filename: "mods.d.tar.gz")
+    }
+
+    /// The repository endpoint containing a named raw module ZIP package.
+    public func moduleArchiveURL(named moduleName: String) throws -> URL {
+        guard
+            !moduleName.isEmpty,
+            moduleName != ".",
+            moduleName != "..",
+            !moduleName.contains("/"),
+            !moduleName.contains("\\")
+        else {
+            throw SwordError.invalidRemoteModuleName(moduleName)
+        }
+        guard let packageDirectory else {
+            throw SwordError.remoteModulePackagesUnavailable(identifier)
+        }
+        return try resourceURL(
+            directory: packageDirectory,
+            filename: moduleName + ".zip"
+        )
+    }
+
+    private func resourceURL(
+        directory: String,
+        filename: String
+    ) throws -> URL {
+        var components = URLComponents()
+        components.scheme = transport.rawValue.lowercased()
+        components.host = host
+        components.path = "/"
+            + [directory, filename]
+                .flatMap { $0.split(separator: "/") }
+                .joined(separator: "/")
+
+        guard let url = components.url else {
+            throw SwordError.invalidRemoteRepositoryURL(identifier)
+        }
+        return url
     }
 }
