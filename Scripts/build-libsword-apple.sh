@@ -89,7 +89,7 @@ configure_destination() {
         watchos)
             SDK_NAME="watchos"
             SYSTEM_NAME="watchOS"
-            DEFAULT_ARCHITECTURES="arm64_32"
+            DEFAULT_ARCHITECTURES="arm64;arm64_32"
             DEFAULT_DEPLOYMENT_TARGET="10.0"
             ;;
         watchos-simulator)

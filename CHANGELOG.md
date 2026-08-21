@@ -7,6 +7,13 @@ Versioning and is currently preparing its first pre-1.0 release.
 
 No changes yet.
 
+## 0.5.1 - 2026-08-21
+
+### Fixed
+
+- Include both modern `arm64` and legacy `arm64_32` device architectures in
+  the watchOS SWORD binary slice so current watchOS apps link successfully.
+
 ## 0.5.0 - 2026-08-21
 
 ### Added
