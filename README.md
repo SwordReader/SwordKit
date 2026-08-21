@@ -43,6 +43,17 @@ See [CHANGELOG.md](CHANGELOG.md) for notable changes and
 Open the SwordKit product documentation in Xcode for DocC guides covering setup,
 Apple-platform storage, search, translation comparison, and migration.
 
+## Sample application
+
+[SwordReader](https://github.com/orbeavers14/SwordReader) is the standalone
+multiplatform SwiftUI reference app and public-release integration test bed. It
+depends on tagged SwordKit releases as an external consumer rather than patching
+or vendoring the framework.
+
+Framework defects discovered while developing SwordReader belong in this
+repository. Reproduce them against public SwordKit, add a focused regression
+test, fix and release SwordKit here, then update SwordReader's pinned version.
+
 ## License
 
 SwordKit is licensed under GPL-2.0-only and statically links the GPL-2.0 SWORD

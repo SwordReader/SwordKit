@@ -240,12 +240,14 @@ for try await result in bible.searchStream(
 
 - [x] DocC
 - [x] Tutorials
-- [ ] Sample applications (deferred)
+- [x] Standalone sample application
 - [x] API guides
 - [x] Migration guides
 
-Sample applications will resume when a product app can define useful reusable
-UI boundaries without expanding the core framework.
+[SwordReader](https://github.com/orbeavers14/SwordReader) is maintained in its
+own repository as both a potential product and the reference consumer for tagged
+SwordKit releases. Application-specific UI, navigation, and persistence remain
+outside this framework.
 
 ---
 
