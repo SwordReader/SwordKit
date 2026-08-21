@@ -882,7 +882,7 @@ void SwordModuleTerminateSearch(
 }
 
 const char *SwordBridgeVersion(void) {
-    return "0.4.0";
+    return "0.5.0";
 }
 
 const char *SwordEngineVersion(void) {

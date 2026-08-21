@@ -198,6 +198,40 @@ public struct SwordModuleInstaller: Sendable {
         }
     }
 
+    /// Installs one module from a received raw SWORD ZIP package.
+    ///
+    /// This supports packages delivered by an app-owned transport such as
+    /// WatchConnectivity. Archive entries are validated before extraction and
+    /// the temporary expanded catalog is removed after installation.
+    public func install(
+        moduleNamed moduleName: String,
+        fromArchive archive: URL
+    ) throws {
+        guard archive.isFileURL,
+              FileManager.default.fileExists(atPath: archive.path)
+        else {
+            throw SwordError.invalidRemoteArchive(archive.lastPathComponent)
+        }
+
+        try configuration.createInstallerDirectories()
+        let workspace = configuration.privateDirectory.appending(
+            path: "received-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(
+            at: workspace,
+            withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: workspace) }
+
+        try SwordHTTPSRepositoryTransport.extractModuleArchive(
+            archive,
+            to: workspace
+        )
+        let catalog = try SwordModuleCatalog(directory: workspace)
+        try install(moduleNamed: moduleName, from: catalog)
+    }
+
     /// Removes one module from the configured destination.
     public func remove(moduleNamed moduleName: String) throws {
         let catalog = try SwordModuleCatalog(

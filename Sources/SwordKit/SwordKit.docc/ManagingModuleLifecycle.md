@@ -108,6 +108,25 @@ Installation creates the destination and installer-private directories when
 needed. Refresh explicitly after mutation so the library publishes a new module
 snapshot.
 
+## Install a package received by the app
+
+An app can deliver a raw SWORD ZIP package through its own transport, including
+WatchConnectivity, and install it without granting SwordKit network access:
+
+```swift
+try installer.install(
+    moduleNamed: "ASV",
+    fromArchive: receivedFileURL
+)
+library.refresh()
+```
+
+SwordKit validates every archive path before extraction, expands the package in
+the installer-private directory, installs only the named advertised module, and
+removes the staging directory afterward. The caller remains responsible for
+authenticating its transport and presenting the module's license before
+delivery.
+
 ## Remove and refresh
 
 Removal operates on the configured destination:

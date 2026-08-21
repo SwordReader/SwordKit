@@ -4,7 +4,7 @@ import Testing
 
 @Test
 func bridgeVersionIsAvailable() {
-    #expect(SwordLibrary.bridgeVersion == "0.4.0")
+    #expect(SwordLibrary.bridgeVersion == "0.5.0")
 }
 
 @Test
@@ -246,6 +246,32 @@ func remoteModuleArchiveRejectsParentDirectoryEntry() throws {
             atPath: workspace.appending(path: "escape.txt").path
         )
     )
+}
+
+@Test
+func installerInstallsReceivedModuleArchive() throws {
+    let workspace = FileManager.default.temporaryDirectory.appending(
+        path: "SwordKitReceivedArchive-\(UUID().uuidString)",
+        directoryHint: .isDirectory
+    )
+    let archive = workspace.appending(path: "testbible.zip")
+    let destination = workspace.appending(path: "destination", directoryHint: .isDirectory)
+    let privateDirectory = workspace.appending(path: "installer", directoryHint: .isDirectory)
+    try FileManager.default.createDirectory(at: workspace, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: workspace) }
+
+    let encoded = "UEsDBAoAAAAAAKKWFV0AAAAAAAAAAAAAAAAHABwAbW9kcy5kL1VUCQADz9aIas/WiGp1eAsAAQT1AQAABAAAAABQSwMEFAAAAAgAopYVXUZ0hLZcAAAAZgAAABUAHABtb2RzLmQvdGVzdGJpYmxlLmNvbmZVVAkAA8/WiGrP1ohqdXgLAAEE9QEAAAQAAAAAiw5JLS5xykzKSY3lckksSQxILMmw1dPPzU8pzUkt1i9JrSgp1i9KLAcxgLzikiSQWn0u3/wUl6Iy26DE8hCgDJdLanFyUWZBSWZ+ni3IRAWwkVw+iXnptql5XABQSwMECgAAAAAAopYVXQAAAAAAAAAAAAAAAAgAHABtb2R1bGVzL1VUCQADz9aIas/WiGp1eAsAAQT1AQAABAAAAABQSwMECgAAAAAAopYVXQAAAAAAAAAAAAAAAA4AHABtb2R1bGVzL3RleHRzL1VUCQADz9aIas/WiGp1eAsAAQT1AQAABAAAAABQSwMECgAAAAAAopYVXQAAAAAAAAAAAAAAABYAHABtb2R1bGVzL3RleHRzL3Jhd3RleHQvVVQJAAPP1ohqz9aIanV4CwABBPUBAAAEAAAAAFBLAwQKAAAAAACilhVdAAAAAAAAAAAAAAAAIAAcAG1vZHVsZXMvdGV4dHMvcmF3dGV4dC90ZXN0YmlibGUvVVQJAAPP1ohqz9aIanV4CwABBPUBAAAEAAAAAFBLAwQKAAAAAACilhVdwAXdlAsAAAALAAAAKwAcAG1vZHVsZXMvdGV4dHMvcmF3dGV4dC90ZXN0YmlibGUvcGxhY2Vob2xkZXJVVAkAA8/WiGrP1ohqdXgLAAEE9QEAAAQAAAAAbW9kdWxlLWRhdGFQSwECHgMKAAAAAACilhVdAAAAAAAAAAAAAAAABwAYAAAAAAAAABAA7UEAAAAAbW9kcy5kL1VUBQADz9aIanV4CwABBPUBAAAEAAAAAFBLAQIeAxQAAAAIAKKWFV1GdIS2XAAAAGYAAAAVABgAAAAAAAEAAACkgUEAAABtb2RzLmQvdGVzdGJpYmxlLmNvbmZVVAUAA8/WiGp1eAsAAQT1AQAABAAAAABQSwECHgMKAAAAAACilhVdAAAAAAAAAAAAAAAACAAYAAAAAAAAABAA7UHsAAAAbW9kdWxlcy9VVAUAA8/WiGp1eAsAAQT1AQAABAAAAABQSwECHgMKAAAAAACilhVdAAAAAAAAAAAAAAAADgAYAAAAAAAAABAA7UEuAQAAbW9kdWxlcy90ZXh0cy9VVAUAA8/WiGp1eAsAAQT1AQAABAAAAABQSwECHgMKAAAAAACilhVdAAAAAAAAAAAAAAAAFgAYAAAAAAAAABAA7UF2AQAAbW9kdWxlcy90ZXh0cy9yYXd0ZXh0L1VUBQADz9aIanV4CwABBPUBAAAEAAAAAFBLAQIeAwoAAAAAAKKWFV0AAAAAAAAAAAAAAAAgABgAAAAAAAAAEADtQcYBAABtb2R1bGVzL3RleHRzL3Jhd3RleHQvdGVzdGJpYmxlL1VUBQADz9aIanV4CwABBPUBAAAEAAAAAFBLAQIeAwoAAAAAAKKWFV3ABd2UCwAAAAsAAAArABgAAAAAAAEAAACkgSACAABtb2R1bGVzL3RleHRzL3Jhd3RleHQvdGVzdGJpYmxlL3BsYWNlaG9sZGVyVVQFAAPP1ohqdXgLAAEE9QEAAAQAAAAAUEsFBgAAAAAHAAcAfQIAAJACAAAAAA=="
+    try #require(Data(base64Encoded: encoded)).write(to: archive)
+    let configuration = try SwordInstallerConfiguration(
+        destinationDirectory: destination,
+        privateDirectory: privateDirectory
+    )
+    let installer = SwordModuleInstaller(configuration: configuration)
+
+    try installer.install(moduleNamed: "TestBible", fromArchive: archive)
+
+    let catalog = try SwordModuleCatalog(directory: destination)
+    #expect(catalog.modules.map(\.name) == ["TestBible"])
 }
 
 @Test

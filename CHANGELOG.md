@@ -7,6 +7,15 @@ Versioning and is currently preparing its first pre-1.0 release.
 
 No changes yet.
 
+## 0.5.0 - 2026-08-21
+
+### Added
+
+- Safe installation of a raw SWORD ZIP package received through an app-owned
+  transport such as WatchConnectivity.
+- Automatic staging cleanup and reuse of archive traversal validation for
+  received packages.
+
 ## 0.4.0 - 2026-08-21
 
 ### Added
