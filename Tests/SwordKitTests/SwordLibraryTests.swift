@@ -808,6 +808,23 @@ func knownSwordCategoriesAreMapped() {
 }
 
 @Test
+func installedGeneralBookSupportsKeyedReading() throws {
+    let library = SwordLibrary()
+    guard let module = library.modules.first(where: { $0.category == .generalBook }) else {
+        // General-book packages are optional on developer and CI machines.
+        return
+    }
+
+    let keys = try module.keyedEntryKeys()
+    let firstReadableEntry = try keys.lazy
+        .map { try module.keyedEntry(for: $0) }
+        .first { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+    #expect(!keys.isEmpty)
+    #expect(firstReadableEntry != nil)
+}
+
+@Test
 func moduleKeepsNativeManagerAlive() {
     let module: SwordModule?
 
