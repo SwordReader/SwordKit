@@ -307,6 +307,9 @@ struct SwordModuleHandle {
     std::vector<long> searchResultScores;
     std::string searchResultReferenceBuffer;
 
+    std::vector<std::string> entryKeys;
+    std::string entryKeyBuffer;
+
     SwordModuleHandle(
         sword::SWModule *module,
         sword::SWModule *htmlModule
@@ -1102,6 +1105,73 @@ const char *SwordModuleCurrentKey(
         module->currentKey.clear();
         return "";
     }
+}
+
+size_t SwordModuleEntryKeyCount(SwordModuleHandle *module) {
+    if (module == nullptr || module->module == nullptr) {
+        return 0;
+    }
+
+    module->entryKeys.clear();
+    module->entryKeyBuffer.clear();
+
+    try {
+        const std::string originalKey = safeCString(
+            module->module->getKeyText()
+        );
+
+        module->module->setPosition(sword::SW_POSITION(1));
+        constexpr size_t maximumEntryCount = 100000;
+
+        while (
+            module->module->popError() == 0
+            && module->entryKeys.size() < maximumEntryCount
+        ) {
+            const std::string key = safeCString(
+                module->module->getKeyText()
+            );
+
+            if (
+                !key.empty()
+                && (module->entryKeys.empty() || module->entryKeys.back() != key)
+            ) {
+                module->entryKeys.push_back(key);
+            }
+
+            module->module->increment();
+        }
+
+        if (!originalKey.empty()) {
+            module->module->setKey(originalKey.c_str());
+        }
+
+        return module->entryKeys.size();
+    } catch (...) {
+        module->entryKeys.clear();
+        module->entryKeyBuffer.clear();
+        return 0;
+    }
+}
+
+const char *SwordModuleEntryKey(
+    SwordModuleHandle *module,
+    size_t index
+) {
+    if (module == nullptr || index >= module->entryKeys.size()) {
+        return "";
+    }
+
+    module->entryKeyBuffer = module->entryKeys[index];
+    return module->entryKeyBuffer.c_str();
+}
+
+void SwordModuleClearEntryKeys(SwordModuleHandle *module) {
+    if (module == nullptr) {
+        return;
+    }
+
+    module->entryKeys.clear();
+    module->entryKeyBuffer.clear();
 }
 
 const char *SwordModuleRenderText(

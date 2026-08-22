@@ -31,7 +31,7 @@ public final class SwordModule: Hashable, @unchecked Sendable {
     public let category: Category
     
     private let storage: SwordManagerStorage
-    private let accessLock = NSRecursiveLock()
+    let accessLock = NSRecursiveLock()
     internal let handle: OpaquePointer
     
     internal init(
@@ -892,6 +892,9 @@ public extension SwordModule {
         /// A general-purpose book.
         case generalBook
 
+        /// A calendar-keyed daily devotional.
+        case devotional
+
         /// A module type not recognized by SwordKit.
         case other(String)
 
@@ -909,8 +912,21 @@ public extension SwordModule {
             case "Generic Books":
                 self = .generalBook
 
+            case "Daily Devotional", "Daily Devotionals":
+                self = .devotional
+
             default:
                 self = .other(swordType)
+            }
+        }
+
+        /// Whether modules in this category expose navigable keyed entries.
+        public var supportsKeyedEntries: Bool {
+            switch self {
+            case .dictionary, .generalBook, .devotional:
+                true
+            case .bible, .commentary, .other:
+                false
             }
         }
     }

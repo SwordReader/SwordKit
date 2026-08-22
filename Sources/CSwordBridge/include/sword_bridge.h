@@ -177,6 +177,10 @@ const char *SwordModuleRenderHTML(
     SwordModuleHandle *module
 );
 
+size_t SwordModuleEntryKeyCount(SwordModuleHandle *module);
+const char *SwordModuleEntryKey(SwordModuleHandle *module, size_t index);
+void SwordModuleClearEntryKeys(SwordModuleHandle *module);
+
 size_t SwordModuleWordAttributeCount(
     const SwordModuleHandle *module
 );

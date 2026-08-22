@@ -793,6 +793,15 @@ func knownSwordCategoriesAreMapped() {
     )
 
     #expect(
+        SwordModule.Category(swordType: "Daily Devotional") == .devotional
+    )
+
+    #expect(SwordModule.Category.generalBook.supportsKeyedEntries)
+    #expect(SwordModule.Category.devotional.supportsKeyedEntries)
+    #expect(SwordModule.Category.dictionary.supportsKeyedEntries)
+    #expect(!SwordModule.Category.bible.supportsKeyedEntries)
+
+    #expect(
         SwordModule.Category(swordType: "Custom Type")
             == .other("Custom Type")
     )
