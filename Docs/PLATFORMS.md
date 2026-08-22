@@ -55,7 +55,7 @@ The native build must cover:
 - iOS and iOS Simulator
 - tvOS and tvOS Simulator
 - visionOS and visionOS Simulator
-- watchOS and watchOS Simulator before full watchOS engine support is promised
+- watchOS and watchOS Simulator
 
 Each slice must use the same vendored SWORD revision and compatible feature
 flags. The C bridge must compile against every supported SDK without importing UI

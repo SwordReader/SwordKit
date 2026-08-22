@@ -62,3 +62,22 @@ let attributedText = try bible.attributedString("John 3:16")
 
 The attributed result can include SwordKit attributes for Strong's numbers and
 morphology when the installed module supplies that information.
+
+## Read non-Bible modules
+
+Dictionaries, general books, and daily devotionals use module-native keys
+instead of Scripture references:
+
+```swift
+guard let dictionary = library.modules(category: .dictionary).first,
+      let firstKey = try dictionary.keyedEntryKeys().first else {
+    return
+}
+
+let entry = try dictionary.keyedEntry(for: firstKey)
+print(entry.text)
+```
+
+Commentary modules can currently be discovered and inspected, but reading their
+entries is not yet public API. Calling a Bible-only or keyed-entry API on an
+unsupported module category throws ``SwordError/unsupportedModuleType``.
