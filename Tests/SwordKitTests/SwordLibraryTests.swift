@@ -4,7 +4,7 @@ import Testing
 
 @Test
 func bridgeVersionIsAvailable() {
-    #expect(SwordLibrary.bridgeVersion == "0.5.1")
+    #expect(SwordLibrary.bridgeVersion == "0.6.0")
 }
 
 @Test

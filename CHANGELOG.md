@@ -7,6 +7,19 @@ Versioning and is currently preparing its first pre-1.0 release.
 
 No changes yet.
 
+## 0.6.0 - 2026-08-21
+
+### Added
+
+- Public keyed-entry support for general books, dictionaries, and daily
+  devotionals, including ordered key enumeration and plain-text and XHTML
+  rendering.
+- Explicit daily-devotional module categorization.
+
+### Fixed
+
+- Report the 0.6.0 bridge version through `SwordLibrary.bridgeVersion`.
+
 ## 0.5.1 - 2026-08-21
 
 ### Fixed
