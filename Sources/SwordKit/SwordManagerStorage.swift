@@ -4,9 +4,11 @@ internal final class SwordManagerStorage {
     internal let handle: OpaquePointer
 
     internal init?(directory: String? = nil) {
-        let handle = directory?.withCString {
-            SwordManagerCreateAtPath($0)
-        } ?? SwordManagerCreate()
+        let handle = SwordEngineAccess.lock.withLock {
+            directory?.withCString {
+                SwordManagerCreateAtPath($0)
+            } ?? SwordManagerCreate()
+        }
 
         guard let handle else {
             return nil
@@ -16,6 +18,8 @@ internal final class SwordManagerStorage {
     }
 
     deinit {
-        SwordManagerDestroy(handle)
+        SwordEngineAccess.lock.withLock {
+            SwordManagerDestroy(handle)
+        }
     }
 }

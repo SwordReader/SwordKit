@@ -2072,6 +2072,40 @@ func sharedBibleSerializesConcurrentVerseAccess() async throws {
 }
 
 @Test
+func separateLibrariesSerializeSharedNativeEngineAccess() async throws {
+    let firstLibrary = SwordLibrary()
+    let secondLibrary = SwordLibrary()
+
+    guard let firstBible = firstLibrary.module(named: "KJV"),
+          let secondBible = secondLibrary.module(named: "KJV")
+    else {
+        return
+    }
+
+    let references = ["John 3:16", "Romans 8:28", "Psalm 23:1"]
+    let retrieved = try await withThrowingTaskGroup(
+        of: SwordVerse.self,
+        returning: [SwordVerse].self
+    ) { group in
+        for index in 0..<30 {
+            group.addTask {
+                let bible = index.isMultiple(of: 2) ? firstBible : secondBible
+                return try bible.verse(references[index % references.count])
+            }
+        }
+
+        var verses: [SwordVerse] = []
+        for try await verse in group {
+            verses.append(verse)
+        }
+        return verses
+    }
+
+    #expect(retrieved.count == 30)
+    #expect(retrieved.allSatisfy { !$0.text.isEmpty })
+}
+
+@Test
 func sharedLibrarySerializesRefreshAndModuleSnapshots() async {
     let library = SwordLibrary()
 

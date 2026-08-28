@@ -18,7 +18,7 @@ public final class SwordLibrary: @unchecked Sendable {
         accessLock.withLock { storedModules }
     }
 
-    private let accessLock = NSRecursiveLock()
+    private let accessLock = SwordEngineAccess.lock
     private var storedModules: [SwordModule]
     private var storage: SwordManagerStorage?
     private let directory: URL?

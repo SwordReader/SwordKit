@@ -32,9 +32,10 @@ protects native state internally.
 
 ## Understand serialization
 
-Operations against the same module wait for one another. Different modules can
-perform work independently. For maximum parallelism across long searches, use
-separate module objects rather than sending several operations to one module.
+Operations against the same module wait for one another. SWORD also shares
+native parsing and locale state across modules, so SwordKit serializes all
+engine calls within a process. Use Swift concurrency to keep that native work
+off your UI actor; immutable results remain safe to pass between tasks.
 
 The library's ``SwordLibrary/modules`` property returns a stable array snapshot.
 Refreshing does not invalidate immutable values already returned to callers.

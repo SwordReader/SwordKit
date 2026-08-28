@@ -31,7 +31,7 @@ public final class SwordModule: Hashable, @unchecked Sendable {
     public let category: Category
     
     private let storage: SwordManagerStorage
-    let accessLock = NSRecursiveLock()
+    let accessLock = SwordEngineAccess.lock
     internal let handle: OpaquePointer
     
     internal init(
@@ -706,7 +706,9 @@ public final class SwordModule: Hashable, @unchecked Sendable {
     }
     
     deinit {
-        SwordModuleDestroy(handle)
+        accessLock.withLock {
+            SwordModuleDestroy(handle)
+        }
     }
     
     /// Returns whether two values represent the same live module instance.
