@@ -8,7 +8,7 @@ Keep the existing app and migrate incrementally. SwordKit owns the native SWORD
 bridge; BibleKit owns provider-neutral contracts; BibleKitSword adapts SWORD;
 BibleUI owns reusable presentation; SwordReader owns product navigation and data.
 
-## Verified baseline
+## Initial verified baseline
 
 - SwordKit's required test script passes: 115 Swift Testing tests.
 - SwordReader macOS tests pass with the current working copy.
@@ -29,15 +29,15 @@ BibleUI owns reusable presentation; SwordReader owns product navigation and data
    - Test shutdown with actual module reads in flight. The global engine lock
      does not synchronize with native static destructors at process exit.
 
-2. Integrate BibleKitSword incrementally.
-   - The other task owns the in-progress reading contract; do not edit or publish
-     its uncommitted files from this task.
-   - Start with catalogs and individual keyed-entry reads from a tested public tag.
-   - Preserve module IDs and existing study-data references.
-   - Add chapter/book navigation, search, download lifecycle, and rich footnote,
-     cross-reference, heading, and lexical metadata contracts before replacing
-     the complete ScriptureServing interface.
-   - Keep watch transfer, reminders, Handoff, and persistence in the application.
+2. Integrate BibleKitSword incrementally (baseline complete).
+   - SwordReader PR #16 merged provider-based app/Watch services and initial
+     BibleUI components. Current pins are BibleKit 0.3.2 and BibleUI 0.2.3.
+   - Catalogs, reading, book/chapter navigation, search, parallel comparison,
+     and SWORD module lifecycle now flow through the adapter.
+   - Continue extracting the advanced study renderer without losing module IDs,
+     existing study-data references, footnotes, cross references, or lexical metadata.
+   - Watch transfer, reminders, Handoff, and persistence remain app-owned.
+   - Complete running-app/device acceptance; compiler checks are not that gate.
 
 3. Reader workspace UI and behavior.
    - Use one clear global toolbar; move module and location changes into pane
@@ -78,11 +78,13 @@ BibleUI owns reusable presentation; SwordReader owns product navigation and data
 - BibleKit now has reading/navigation/search contracts, SWORD module management
   and parallel reading, and a read-only HTTPS JSON feed provider. BibleUI has
   initial reader, catalog, reference, and ordered-entry components. The other
-  chat is validating consumer integration in a separate worktree; it is not yet
-  merged into the audited SwordReader main baseline.
+  chat completed consumer integration, merged as PR #16 (`050e909`). The follow-up
+  `9ad4c41` adopts BibleUI 0.2.3's Watch/TV platform patch. macOS tests and generic
+  iOS/watchOS builds passed in that work; optional real ASV adapter tests verified
+  reading/navigation/search fidelity. Device acceptance remains pending.
 - SwordKit `v0.6.1` is now published as GitHub's latest release. Native shutdown
   reproduction and fixture hardening remain unfinished.
 
-This document records source-level findings and compiler validation. UI proposals
-still require inspection of the running app; BibleKitSword consumer migration
-and crash reproduction have not yet been completed.
+This document records initial findings and subsequent source/compiler validation.
+Baseline BibleKitSword consumer migration is merged. Further UI acceptance,
+advanced study-renderer extraction, and native shutdown reproduction remain open.
