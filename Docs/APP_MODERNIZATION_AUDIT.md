@@ -44,7 +44,7 @@ BibleUI owns reusable presentation; SwordReader owns product navigation and data
      headers. Avoid duplicate controls and ambiguous icon-only actions.
    - Represent a split workspace as a selectable, closable tab group. Preserve
      that group when opening a search result or selecting another workspace.
-     The current combined label only hides the individual tab chips.
+     Completed on SwordReader main in `4b890df`, with session restoration tests.
    - Ensure search targets scroll to their verse after chapter content arrives.
    - Use one rendering and selection path for single and split panes so font,
      red-letter text, notes, highlights, and links behave consistently.
@@ -67,6 +67,21 @@ BibleUI owns reusable presentation; SwordReader owns product navigation and data
    - Complete signing and update delivery before publishing a new app binary.
 
 ## Scope of this audit
+
+### Progress recorded October 3, 2026
+
+- `b6fb071` aligned the app's dependency/configuration and added stale-chapter
+  protection with a controlled regression test; explicit task captures removed
+  the reported Swift 6.4 warnings. macOS tests and the generic iOS build passed.
+- `4b890df` implemented persistent split-workspace tab groups; macOS tests and
+  the generic iOS build passed. Both app commits are pushed.
+- BibleKit now has reading/navigation/search contracts, SWORD module management
+  and parallel reading, and a read-only HTTPS JSON feed provider. BibleUI has
+  initial reader, catalog, reference, and ordered-entry components. The other
+  chat is validating consumer integration in a separate worktree; it is not yet
+  merged into the audited SwordReader main baseline.
+- SwordKit `v0.6.1` is now published as GitHub's latest release. Native shutdown
+  reproduction and fixture hardening remain unfinished.
 
 This document records source-level findings and compiler validation. UI proposals
 still require inspection of the running app; BibleKitSword consumer migration

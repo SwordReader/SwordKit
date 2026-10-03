@@ -22,6 +22,9 @@
 
 # Current Progress
 
+Reviewed October 3, 2026. GitHub's latest published release is `v0.6.1`.
+Checked items describe implemented APIs, not proof of every host/device scenario.
+
 ## Core Engine
 
 - [x] Swift Package
@@ -30,7 +33,8 @@
 - [x] Open installed modules
 - [x] Module discovery
 - [x] Module metadata
-- [x] Safe object lifetime management
+- [x] Explicit manager/module ownership and serialized native-engine access
+- [ ] Deterministic host shutdown validation with real module reads in flight
 
 ---
 
@@ -102,10 +106,19 @@ let results = try bible.search("grace")
 
 # Next Milestone
 
-## Pre-Release Hardening
+## Native Safety and Consumer Integration
 
-The framework milestones are complete. The current focus is making the first
-pre-1.0 release reproducible and safe for external package consumers.
+The initial pre-1.0 release checklist is complete. The current priorities are
+native shutdown validation and feedback from the BibleKitSword/SwordReader
+consumer migration. The process-wide lock in 0.6.1 serializes SWORD access and
+teardown; it does not by itself prove safety against native static destructors.
+
+- [ ] Add deterministic installed-module fixtures to native integration tests
+- [ ] Reproduce and validate process exit with active reads in a host application
+- [ ] Address provider-adapter defects through focused SwordKit regression tests
+- [ ] Validate any future ModernSwordAPI artifact refresh on every supported SDK
+
+### Completed release foundation
 
 - [x] Define the release checklist and changelog
 - [x] Refresh contributor documentation
@@ -215,7 +228,8 @@ Long-term direction:
 - [x] Finalize public naming and ownership semantics
 - [x] Document every public declaration
 - [x] Establish concurrency guarantees
-- [x] Add complete integration tests
+- [x] Add native integration test coverage
+- [ ] Make fixture-dependent coverage deterministic rather than silently bypassed
 - [x] Add continuous integration
 - [x] Publish migration and compatibility policies
 
@@ -248,7 +262,7 @@ for try await result in bible.searchStream(
 - [x] API guides
 - [x] Migration guides
 
-[SwordReader](https://github.com/orbeavers14/SwordReader) is maintained in its
+[SwordReader](https://github.com/SwordReader/SwordReader) is maintained in its
 own repository as both a potential product and the reference consumer for tagged
 SwordKit releases. Application-specific UI, navigation, and persistence remain
 outside this framework.
@@ -314,7 +328,7 @@ Those remain internal implementation details hidden behind a clean Swift API.
 
 # Project Status
 
-The core framework roadmap is complete. Future work can focus on release
-hardening, product-driven API feedback, and the explicitly deferred sample
-applications. The long-term vision remains open-ended and will evolve as apps
-exercise the framework across Apple platforms.
+The listed core APIs are implemented, and 0.6.1 is published. Native shutdown
+hardening and deterministic fixtures remain open. BibleKitSword integration is
+owned by BibleKit and its consuming apps; ModernSwordAPI improvements require
+an explicit vendor/artifact update before becoming part of SwordKit.
