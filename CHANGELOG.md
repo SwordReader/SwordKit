@@ -5,7 +5,16 @@ Versioning and is currently preparing its first pre-1.0 release.
 
 ## Unreleased
 
-No changes yet.
+- Reconcile concurrency documentation and record the Xcode 27/Swift 6.4 app
+  modernization audit and integration sequence.
+
+## 0.6.1 - 2026-08-27
+
+### Fixed
+
+- Serialize module operations and manager/module teardown through a shared
+  process-wide native-engine lock. This addresses cross-instance access to
+  SWORD's shared state; process-shutdown safety still requires host validation.
 
 ## 0.6.0 - 2026-08-21
 
